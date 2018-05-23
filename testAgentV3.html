@@ -1,0 +1,199 @@
+<html>
+<head>
+	<title>Agent PopUp via Api.Ai and Javascript</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script type="text/javascript">
+    var accessToken ="ba377d94ce15441ba348841ffa487c87";
+    var baseUrl = "https://api.dialogflow.com/v1/";
+	var register = false;
+    $(document).ready(function() {
+	
+        $("#input").keypress(function(event) {
+		  document.getElementById("img").src="avatar1.png";
+            if (event.which == 13) {
+                event.preventDefault();
+                send();
+this.value = '';
+            }
+        });
+        $("#rec").click(function(event) {
+            switchRecognition();
+        });
+    });
+    var recognition;
+    function startRecognition() {
+        recognition = new webkitSpeechRecognition();
+        recognition.onstart = function(event) {
+            updateRec();
+        };
+        recognition.onresult = function(event) {
+            var text = "";
+            for (var i = event.resultIndex; i < event.results.length; ++i) {
+                text += event.results[i][0].transcript;
+            }
+            setInput(text);
+            stopRecognition();
+        };
+        recognition.onend = function() {
+            stopRecognition();
+        };
+        recognition.lang = "en-US";
+        recognition.start();
+    }
+    function stopRecognition() {
+        if (recognition) {
+            recognition.stop();
+            recognition = null;
+        }
+        updateRec();
+    }
+    function switchRecognition() {
+        if (recognition) {
+            stopRecognition();
+        } else {
+            startRecognition();
+        }
+    }
+    function setInput(text) {
+        $("#input").val(text);
+        send();
+    }
+    function updateRec() {
+        $("#rec").text(recognition ? "Stop" : "Speak");
+    }
+function send() {
+        var text = $("#input").val();
+    conversation.push("You: " + text + '\r\n');
+        $.ajax({
+            type: "POST",
+            url: baseUrl + "query?v=20150910",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            headers: {
+                "Authorization": "Bearer " + accessToken
+            },
+            data: JSON.stringify({ query: text, lang: "en", sessionId: "somerandomthing" }),
+            success: function(data) {
+                var respText = data.result.fulfillment.speech;
+                console.log("You: " + respText);
+                setResponse(respText);
+                $("#response").scrollTop($("#response").height());
+            },
+            error: function() {
+                setResponse("Internal Server Error");
+            }
+        });
+    }
+    function setResponse(val) {
+	    //Edit "AI: " to change name
+        conversation.push("Agent: " + val + '\r\n');
+        $("#response").text(conversation.join(""));
+		document.getElementById("img").src="avatar1Talk.png";
+    }
+    var conversation = [];
+	
+	function closeTab() {
+	  document.getElementById("agent").style.visibility = "hidden"; 
+	  document.getElementById("open").style.visibility = "visible";
+	  document.getElementById('response').value= '';
+	  
+	   
+	}
+	function openTab() {
+	    document.getElementById("agent").style.visibility = "visible";
+		document.getElementById("open").style.visibility = "hidden";
+		//document.getElementById("response").reset();
+		//document.getElementById("input").reset();
+		
+		location.reload();
+	}
+	
+	
+	
+</script>
+  <style type="text/css">
+		body {  
+         background-image: url("Bckgd1.png");
+	max-width: 1200px
+	max-height: 900px;
+	background-size: 100% 100%;
+		}
+		#close {
+		margin-top: 2%;
+		margin-right: 4%;
+		margin-left: 95%;
+		}
+		.bot {  
+             position: fixed;
+			 background-color: #dbf9f2;
+			 border-radius: 5%;
+    bottom: 5;
+    right: 10;
+    width: 465px;
+    border: 3px solid #4B7474;
+		}
+		#input { width: 62%; height: 30px; margin-left: 14%; margin-right: 2%; margin-bottom: 5%; margin-top: 3%;}
+		bot.button { width: 50px;}
+		bot.textarea { width: 100%; height: 40%; border-style: none; }
+		#rec {
+		height: 30px;
+		}
+		#response {
+		background-color: #EAF0F1;
+		border: 3px solid #4B7474;
+		 border-radius: 5%;
+		 margin-bottom: 3%;
+		}
+		#open {
+		position: fixed;
+    bottom: 0;
+    right: 0;
+	
+	margin-right: 2%;
+	margin-bottom: 2%;
+	visibility: hidden;
+		}
+		
+		#img {
+		border: 3px solid #4B7474;
+		 border-radius: 5%;
+		 margin-left: 3%;
+		 margin-bottom: 3%;
+		}
+		#img {
+		border: 3px solid #4B7474;
+		 border-radius: 5%;
+		 margin-left: 3%;
+		 margin-bottom: 3%;
+		}
+		
+		h1 {
+		text-align: center;
+		}
+		
+		
+		
+		
+	</style>
+</head>
+<body>
+	<div class="bot" id='agent'>
+	<i id='close' onclick='closeTab()' align='right' class="fa fa-times-circle-o fa-lg" aria-hidden="true"></i>
+	
+	<h1 id='title'>Service Agent</h1><br>
+	
+	<img src="avatar1.png" id='img' alt="Agent" width='125' height='300'>
+  <textarea readOnly = true; id="response" cols="40" rows="20" style="resize: none;"></textarea>
+  <br />
+    <input id="input" type="text" placeholder="Type here..." autocomplete="off" /><button id="rec">Speak</button>
+	</div>
+	<i id='open' onclick='openTab()' class="fa fa-commenting fa-3x" aria-hidden="true"></i>
+	
+	
+	</div>
+	</div>
+	
+</body>
+</html>
